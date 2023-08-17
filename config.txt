@@ -1,0 +1,5 @@
+hostname=172.16.0.19
+username=root
+password=winsion123
+client_dir=/opt/platform-ips/client
+server_dir=/opt/platform-ips/server
