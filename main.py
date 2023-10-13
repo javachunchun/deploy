@@ -141,6 +141,18 @@ class FileUploaderApp:
                                                   width=20, bg="orange")
         self.export_server_log_button.grid(row=0, column=2)
 
+        # "重启client"按钮
+        self.restart_client_button = tk.Button(self.button_frame, text="重启client",
+                                                  command=self.restart_client,
+                                                  width=20, bg="orange")
+        self.restart_client_button.grid(row=1, column=0, padx=(0, 10))
+
+        # "重启server"按钮
+        self.restart_server_button = tk.Button(self.button_frame, text="重启server",
+                                               command=self.restart_server,
+                                               width=20, bg="orange")
+        self.restart_server_button.grid(row=1, column=1, padx=(0, 10))
+
         self.status_label = tk.Label(self.root, text="")
         self.status_label.pack()
 
@@ -179,6 +191,50 @@ class FileUploaderApp:
                 config[key] = value
         server_dir = config.get('server_dir', '')
         self.export_log(f"{server_dir}/logs", "server.log")
+
+    def restart_client(self):
+        self.log_text.delete(1.0, tk.END)  # 清空日志文本框
+
+        with open('config.txt', 'r') as config_file:
+            config = {}
+            for line in config_file:
+                key, value = line.strip().split('=')
+                config[key] = value
+
+        hostname = config.get('hostname', '')
+        username = config.get('username', '')
+        password = config.get('password', '')
+        client_dir = config.get('client_dir', '')
+
+        transport = paramiko.Transport((hostname, 22))
+        transport.connect(username=username, password=password)
+        sftp = paramiko.SFTPClient.from_transport(transport)
+
+        self.restart_project(sftp, hostname, username, password, client_dir, f'platform-ips-client-2.0.0.jar',
+                             "8081")
+        self.log_text.insert(tk.END, "client包重启成功...\n")
+
+    def restart_server(self):
+        self.log_text.delete(1.0, tk.END)  # 清空日志文本框
+
+        with open('config.txt', 'r') as config_file:
+            config = {}
+            for line in config_file:
+                key, value = line.strip().split('=')
+                config[key] = value
+
+        hostname = config.get('hostname', '')
+        username = config.get('username', '')
+        password = config.get('password', '')
+        server_dir = config.get('server_dir', '')
+
+        transport = paramiko.Transport((hostname, 22))
+        transport.connect(username=username, password=password)
+        sftp = paramiko.SFTPClient.from_transport(transport)
+
+        self.restart_project(sftp, hostname, username, password, server_dir, f'platform-ips-server-2.0.0.jar',
+                             "8082")
+        self.log_text.insert(tk.END, "server包重启成功...\n")
 
     def export_log(self, log_dir, log_filename):
         try:
